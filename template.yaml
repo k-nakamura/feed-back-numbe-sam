@@ -1,0 +1,98 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  feed-back-number-sam
+  Sample SAM Template for save RSS or Atom feed to S3 Bucket
+  WARN: The S3 bucket is retained even if the stack is deleted.
+
+Globals:
+  Function:
+    Timeout: 3
+
+Parameters:
+  BucketName:
+    Type: String
+    Default: 'feed-back-number'
+    Description: (Required) The name of the new S3 Bucket. Minimum 3 characters
+    MinLength: 3
+    MaxLength: 50
+    AllowedPattern: ^[A-Za-z_\-]+$
+    ConstraintDescription: 'Required. Can be characters, underscore and hyphen only. No numbers or special characters allowed.'
+
+Resources:
+  FeedBackNumberFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: feed-back-number/
+      Handler: app.lambdaHandler
+      Runtime: nodejs14.x
+      Architectures:
+        - x86_64
+      Environment:
+        Variables:
+          BUCKET_NAME: !Ref BucketName
+      Policies:
+        - S3WritePolicy:
+            BucketName: !Ref BucketName
+      Events:
+        ScheduleGihyoBook:
+          Type: Schedule
+          Properties:
+            Schedule: 'cron(0 */2 * * ? *)'
+            Name: ScheduleGihyoBook
+            Input: "{\"name\": \"gihyo_book\",\"url\": \"https://gihyo.jp/book/feed/atom\"}"
+            Description: "技術評論社(新刊書籍情報)のフィードをS3へ保存"
+            Enabled: true
+        ScheduleGihyoMagazine:
+          Type: Schedule
+          Properties:
+            Schedule: 'cron(0 */2 * * ? *)'
+            Name: ScheduleGihyoMagazine
+            Input: "{\"name\": \"gihyo_magazine\",\"url\": \"https://gihyo.jp/magazine/feed/atom\"}"
+            Description: "技術評論社(定期刊行物一覧以下)のフィードをS3へ保存"
+            Enabled: true
+        ScheduleGihyoSd:
+          Type: Schedule
+          Properties:
+            Schedule: 'cron(0 */2 * * ? *)'
+            Name: ScheduleGihyoSd
+            Input: "{\"name\": \"gihyo_sd\",\"url\": \"https://gihyo.jp/magazine/SD/feed/atom\"}"
+            Description: "技術評論社(Software Design)のフィードをS3へ保存"
+            Enabled: true
+        ScheduleGihyoWdPress:
+          Type: Schedule
+          Properties:
+            Schedule: 'cron(0 */2 * * ? *)'
+            Name: ScheduleGihyoWdPress
+            Input: "{\"name\": \"gihyo_wdpress\",\"url\": \"https://gihyo.jp/magazine/wdpress/feed/atom\"}"
+            Description: "技術評論社(WEB+DB PRESS)のフィードをS3へ保存"
+            Enabled: true
+        ScheduleOreilly:
+          Type: Schedule
+          Properties:
+            Schedule: 'cron(0 */2 * * ? *)'
+            Name: ScheduleOreilly
+            Input: "{\"name\": \"oreilly\",\"url\": \"https://www.oreilly.co.jp/catalog/soon.xml\"}"
+            Description: "O'ReillyのフィードをS3へ保存"
+            Enabled: true
+        ScheduleShoeisha:
+          Type: Schedule
+          Properties:
+            Schedule: 'cron(0 */2 * * ? *)'
+            Name: ScheduleShoeisha
+            Input: "{\"name\": \"shoeisha\",\"url\": \"https://www.shoeisha.co.jp/rss/book/index.xml\"}"
+            Description: "翔泳社のフィードをS3へ保存"
+            Enabled: true
+  FeedBackNumberBucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Retain
+    Properties:
+      BucketName: !Ref BucketName
+
+Outputs:
+  FeedBackNumberFunction:
+    Description: "Feed Back Number Function ARN"
+    Value: !GetAtt FeedBackNumberFunction.Arn
+  FeedBackNumberBucket:
+    Description: "Feed Back Number Bucket ARN"
+    Value: !GetAtt FeedBackNumberBucket.Arn
