@@ -5,9 +5,6 @@ let response;
 
 exports.lambdaHandler = async (event) => {
   try {
-    console.log('===============');
-    console.log(event.body);
-    console.log('===============');
     const {url, name} = event;
     const folder = SHA256(url).toString();
 
