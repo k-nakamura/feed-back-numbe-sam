@@ -1,7 +1,10 @@
 const AWS = require('aws-sdk');
 const axios = require('axios');
 const SHA256 = require("crypto-js/sha256");
+const moment = require("moment-timezone");
 let response;
+
+const TIME_ZONE = 'Asia/Tokyo';
 
 exports.lambdaHandler = async (event) => {
   try {
@@ -9,21 +12,9 @@ exports.lambdaHandler = async (event) => {
     const folder = SHA256(url).toString();
 
     const feed = await axios(url);
-    const date = new Date();
-
-    const padding = (str, n = 2) => str.toString().padStart(n, '0');
-
-    const [y, m, d, h, i, s] = [
-      date.getFullYear(),
-      padding((date.getMonth() + 1)),
-      padding(date.getDate()),
-      padding(date.getHours()),
-      padding(date.getMinutes()),
-      padding(date.getSeconds()),
-    ];
     const Bucket = process.env.BUCKET_NAME;
 
-    const Key = `${folder}/${name}_${y}${m}${d}${h}${i}${s}.xml`;
+    const Key = `${folder}/${name}_${moment.tz(TIME_ZONE).format('YYYYMMDDhhmmss')}.xml`;
     const Body = feed.data.trim();
 
     const s3 = new AWS.S3({apiVersion: '2006-03-01'});
@@ -50,7 +41,7 @@ exports.lambdaHandler = async (event) => {
       'statusCode': 200,
       'body': JSON.stringify({
         name,
-        content: feed.data.trim(),
+        output: Key,
       })
     }
   } catch (err) {
