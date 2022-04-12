@@ -14,7 +14,7 @@ exports.lambdaHandler = async (event) => {
     const feed = await axios(url);
     const Bucket = process.env.BUCKET_NAME;
 
-    const Key = `${folder}/${name}_${moment.tz(TIME_ZONE).format('YYYYMMDDhhmmss')}.xml`;
+    const Key = `${folder}/${name}_${moment.tz(TIME_ZONE).format('YYYYMMDDHHmmss')}.xml`;
     const Body = feed.data.trim();
 
     const s3 = new AWS.S3({apiVersion: '2006-03-01'});
